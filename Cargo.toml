@@ -1,10 +1,11 @@
 [package]
-name = "ceph"
-version = "3.2.5"
+name = "ceph-async"
+version = "4.0.0"
 authors = [
     "Chris Jones <chris.jones@lambdastack.io>",
     "Chris Holcombe <xfactor973@gmail.com>",
     "Chris MacNaughton <chris@centaurisolutions.nl>",
+    "Yifang Sun <evansun0312@gmail.com>",
 ]
 license = "Apache-2.0"
 readme = "README.md"
@@ -20,11 +21,11 @@ keywords = ["ceph", "storage"]
 categories = ["filesystem"]
 
 documentation = "https://docs.rs/ceph"
-repository = "https://github.com/ceph/ceph-rust"
-homepage = "https://github.com/ceph/ceph-rust"
+repository = "https://github.com/YifangSun/ceph-rust"
+homepage = "https://github.com/YifangSun/ceph-rust"
 
 description = """
-Official Ceph-rust. A rust-lang specific interface to Ceph librados and Admin Sockets. You can create a Ceph development environment with the
+Forked from official ceph-rust. Async pr from jcsp was merged. A rust-lang specific interface to Ceph librados and Admin Sockets. You can create a Ceph development environment with the
 Chef automation tools: https://github.com/bloomberg/chef-bcs or with ceph-ansible. Chef-bcs uses the ceph-chef cookbook
 created and manage at github.com/ceph/ceph-chef. It will build out a full Ceph environment which you can then use
 for development etc. See README.md for details.
