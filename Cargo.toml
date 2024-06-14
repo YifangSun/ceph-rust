@@ -1,6 +1,6 @@
 [package]
 name = "ceph-async"
-version = "4.0.0"
+version = "4.0.1"
 authors = [
     "Chris Jones <chris.jones@lambdastack.io>",
     "Chris Holcombe <xfactor973@gmail.com>",
