@@ -343,7 +343,7 @@ impl Iterator for XAttr {
 /// Owns a ioctx handle
 pub struct IoCtx {
     // This is pub within the crate to enable Completions to use it
-    pub(crate) ioctx: rados_ioctx_t,
+    pub ioctx: rados_ioctx_t,
 }
 
 unsafe impl Send for IoCtx {}

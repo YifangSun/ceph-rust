@@ -58,7 +58,7 @@ pub struct ReadStream<'a> {
 unsafe impl Send for ReadStream<'_> {}
 
 impl<'a> ReadStream<'a> {
-    pub(crate) fn new(
+    pub fn new(
         ioctx: &'a IoCtx,
         object_name: &str,
         buffer_size: Option<usize>,

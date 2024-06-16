@@ -25,7 +25,7 @@ use crate::rados::{
     rados_completion_t,
 };
 
-pub(crate) struct Completion<'a> {
+pub struct Completion<'a> {
     inner: rados_completion_t,
 
     // Box to provide a stable address for completion_complete callback
@@ -122,7 +122,7 @@ impl std::future::Future for Completion<'_> {
 /// Completions are only created via this wrapper, in order to ensure
 /// that the Completion struct is only constructed around 'armed' rados_completion_t
 /// instances (i.e. those that have been used to start an I/O).
-pub(crate) fn with_completion<F>(ioctx: &IoCtx, f: F) -> RadosResult<Completion<'_>>
+pub fn with_completion<F>(ioctx: &IoCtx, f: F) -> RadosResult<Completion<'_>>
 where
     F: FnOnce(rados_completion_t) -> libc::c_int,
 {
