@@ -351,11 +351,12 @@ unsafe impl Sync for IoCtx {}
 
 impl Drop for IoCtx {
     fn drop(&mut self) {
-        if !self.ioctx.is_null() {
-            unsafe {
-                rados_ioctx_destroy(self.ioctx);
-            }
-        }
+        assert!(self.ioctx.is_null(), "Rados not disconnected!");
+        // if !self.ioctx.is_null() {
+        //     unsafe {
+        //         rados_ioctx_destroy(self.ioctx);
+        //     }
+        // }
     }
 }
 
@@ -387,11 +388,12 @@ unsafe impl Sync for Rados {}
 
 impl Drop for Rados {
     fn drop(&mut self) {
-        if !self.rados.is_null() {
-            unsafe {
-                rados_shutdown(self.rados);
-            }
-        }
+        assert!(self.rados.is_null(), "Rados not disconnected!");
+        // if !self.rados.is_null() {
+        //     unsafe {
+        //         rados_shutdown(self.rados);
+        //     }
+        // }
     }
 }
 
@@ -435,15 +437,31 @@ pub async fn connect_to_ceph_async(user_id: &str, config_file: &str) -> RadosRes
         .await
 }
 
+/// The lifetime of `Rados` ends up after disconnect_from_ceph,
+/// so just move it away.
+pub async fn disconnect_from_ceph_async(mut rados: Rados) {
+    let pool = futures::executor::ThreadPool::builder()
+        .pool_size(1)
+        .create()
+        .expect("Could not spawn thread pool");
+    pool.spawn_with_handle(async move { rados.disconnect_from_ceph() })
+        .expect("Could not spawn background task")
+        .await;
+}
+
 impl Rados {
     pub fn inner(&self) -> &rados_t {
         &self.rados
     }
 
+    fn set_null(&mut self) {
+        self.rados = ptr::null_mut();
+    }
+
     /// Disconnect from a Ceph cluster and destroy the connection handle rados_t
     /// For clean up, this is only necessary after connect_to_ceph() has
     /// succeeded.
-    pub fn disconnect_from_ceph(&self) {
+    pub fn disconnect_from_ceph(&mut self) {
         if self.rados.is_null() {
             // No need to do anything
             return;
@@ -451,6 +469,8 @@ impl Rados {
         unsafe {
             rados_shutdown(self.rados);
         }
+        // avoid double free
+        self.set_null();
     }
 
     fn conn_guard(&self) -> RadosResult<()> {
@@ -536,9 +556,25 @@ impl Rados {
     }
 }
 
+/// The lifetime of `IoCtx` ends up after destroy_rados_ioctx,
+/// so just move it away.
+pub async fn destroy_rados_ioctx_async(mut ioctx: IoCtx) {
+    let pool = futures::executor::ThreadPool::builder()
+        .pool_size(1)
+        .create()
+        .expect("Could not spawn thread pool");
+    pool.spawn_with_handle(async move { ioctx.destroy_rados_ioctx() })
+        .expect("Could not spawn background task")
+        .await;
+}
+
 impl IoCtx {
     pub fn inner(&self) -> &rados_ioctx_t {
         &self.ioctx
+    }
+
+    fn set_null(&mut self) {
+        self.ioctx = ptr::null_mut();
     }
 
     /// This just tells librados that you no longer need to use the io context.
@@ -548,7 +584,7 @@ impl IoCtx {
     /// This does not guarantee any asynchronous writes have completed. You must
     /// call rados_aio_flush()
     /// on the io context before destroying it to do that.
-    pub fn destroy_rados_ioctx(&self) {
+    pub fn destroy_rados_ioctx(&mut self) {
         if self.ioctx.is_null() {
             // No need to do anything
             return;
@@ -556,6 +592,8 @@ impl IoCtx {
         unsafe {
             rados_ioctx_destroy(self.ioctx);
         }
+        // avoid double free
+        self.set_null();
     }
     fn ioctx_guard(&self) -> RadosResult<()> {
         if self.ioctx.is_null() {
