@@ -1077,7 +1077,7 @@ impl IoCtx {
 
     /// Async variant of rados_object_read
     pub async fn rados_async_object_read(
-        self: &Arc<Self>,
+        &self,
         object_name: &str,
         fill_buffer: &mut Vec<u8>,
         read_offset: u64,
